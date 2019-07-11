@@ -5,18 +5,22 @@ How to play:
 Each player makes 2 functions named "deckProcess" and "playCard" and puts them in a .py file titled player1 or player2
 
 deckProcess:
+
     is passed(crib,                 hand,       your pts,   opponent pts)
              (bool(true if yours),  array(6),   int,        int)
+             
     returns(cards to put in crib)
            (array(2))
             
 playCard:
+
     is passed(hand,         played cards,   your pts,   opponent pts)
              (array(1-4),   array(0-7),     int,        int)          
     returns(card to play)
            (str)
 
 All cards are sent in the format:
+
     str[0] = char that says suit:
         D = Diamonds
         H = Hearts
