@@ -27,7 +27,7 @@ All cards are sent in the format:
         H = Hearts
         S = Spades
         C = Clubs
-    str[1,len(str) - 1] = int that says value:
+    str[1:len(str)] = int that says value:
         0 = KING
         1 = ACE
         2-10 = Card according to value
