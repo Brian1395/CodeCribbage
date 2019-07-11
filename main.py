@@ -12,6 +12,7 @@
 ##             (array(1-4),   array(0-7),     int,        int)          
 ##    returns(card to play)
 ##           (str)
+##    OR returns "GO" if no card can be played
 ##
 ##All cards are sent in the format:
 ##    str[0] = char that says suit:
@@ -31,6 +32,9 @@ import player1 as P1
 import player2 as P2
 import random
 import copy
+
+def cardPlayed(card,
+
 
 games = 1
 game = 0
@@ -79,6 +83,63 @@ while (game < games) :
 
         crib1 = P1.deckProcess(plr1_crib,player1_hand,pts1,pts2)
         crib2 = P2.deckProcess(!plr1_crib,player2_hand,pts2,pts1)
+
+        #TODO: Check for valid crib return
         
-        pts1 = 121
+        #Processes crib
+        crib = crib1 + crib2
+        del player1_hand[crib1[0]]
+        del player1_hand[crib1[1]]
+        del player2_hand[crib2[0]]
+        del player2_hand[crib2[1]]
+
+        played_cards = []
+        played_cards_tot = 0
+        while(len(played_cards) < 8):
+            if(plr1_crib):
+                while(played_cards_tot < 31 and (card1 != "GO" and card2 != "GO")):
+                   card2 = P2.playCard(player2_hand,played_cards,pts2,pts1)
+                   if(card2 != "GO"):
+                       played_cards.append(card2)
+                       del player2_hand[card2]
+                   if(card2 == "GO" and card1 == "GO"):  #This allows pts if player 1 called go last round
+                       card2 == "NA"
+                   card1 = P1.playCard(player1_hand,played_cards,pts1,pts2)
+                   if(card1 != "GO"):
+                       played_cards.append(card1)
+                       del player1_hand[card1]
+                if(played_cards_tot = 31):
+                   if(card1 == "GO"):
+                       pts2 += 2;
+                   else:
+                       pts1 += 2;
+                else:
+                   if(card2 == "GO"):
+                       pts1 += 1;
+                   else:
+                       pts2 += 1;
+            else:
+                while(played_cards_tot < 31 and (card1 != "GO" and card2 != "GO")):
+                   card1 = P1.playCard(player1_hand,played_cards,pts1,pts2)
+                   if(card1 != "GO"):
+                       played_cards.append(card1)
+                       del player1_hand[card1]
+                   if(card2 == "GO" and card1 == "GO"):  #This allows pts if player 2 called go last round
+                       card1 == "NA"
+                   card2 = P2.playCard(player2_hand,played_cards,pts2,pts1)
+                   if(card2 != "GO"):
+                       played_cards.append(card2)
+                       del player2_hand[card2]
+                if(played_cards_tot = 31):
+                   if(card1 == "GO"):
+                       pts2 += 2;
+                   else:
+                       pts1 += 2;
+                else:
+                   if(card1 == "GO"):
+                       pts2 += 1;
+                   else:
+                       pts1 += 1;
+        
+        pts1 = 121 #Just here to end loop for testing purposes
     game += 1
