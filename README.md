@@ -18,7 +18,8 @@ playCard:
              (array(1-4),   array(0-7),     int,        int)          
     returns(card to play)
            (str)
-
+    OR returns "GO" if no card can be played
+    
 All cards are sent in the format:
 
     str[0] = char that says suit:
