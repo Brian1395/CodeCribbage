@@ -21,17 +21,23 @@
 ##        S = Spades
 ##        C = Clubs
 ##    str[1,len(str) - 1] = int that says value:
-##        0 = KING
 ##        1 = ACE
 ##        2-10 = Card according to value
 ##        11 = JACK
 ##        12 = QUEEN
-        
+##        13 = KING        
 
 import player1 as P1
 import player2 as P2
 import random
 import copy
+
+def cardValue(card):
+    val = int(card[1:len(card)])
+    if(val > 10):
+        return 10
+    return val
+
 
 def checkStraight(c): 
     nums = []
@@ -81,7 +87,7 @@ def checkPTS(cards_played):
             pts += 2
         return(pts)
 
-    stpts = checkStraight(c)
+    stpts = checkStraight(cards_played)
     
     if(stpts > 0):
         pts = stpts
@@ -95,6 +101,108 @@ def checkPTS(cards_played):
         
     return(0)
 
+def countHand(hand):
+    hand.append(turned_card)
+    print(hand)
+    nums = []
+    pts = 0
+    for x in hand:
+        nums.append(int(x[1:len(x)]))
+
+    #Pairs
+    counted_nums = []
+    for i in nums:      
+        pairs = 0
+        if i not in counted_nums:
+            for u in nums:
+                if(i == u):
+                    pairs += 1
+            if(pairs == 2):
+                pts += 2
+                counted_nums.append(i)
+            elif(pairs == 3):
+                pts += 8
+                counted_nums.append(i)
+            elif(pairs == 4):
+                pts += 12
+                counted_nums.append(i)
+    #Straights
+    straight_nums = sorted(nums)
+    print(straight_nums)
+    pos = 0
+    for i in straight_nums:
+        x = 0
+
+        if(pos > 2):
+            x = -1
+        #print(x)
+
+        double = 0
+        while(x >= 0):
+            
+                
+            if(straight_nums[x + 1 + pos] - straight_nums[x + pos] == 1):
+                print(straight_nums[x + 1 + pos])
+                print(straight_nums[x + pos])
+                x += 1
+            elif(straight_nums[x + 1 + pos] == straight_nums[x + pos]):
+                double += 1
+                x += 1
+            else:
+                if(x - double > 1):
+                    print("Straight of %d cards" %(x+1 - double))
+                    pts += (x+1 - double) * (double + 1)
+                    pos = 100
+                x = -1
+            if(x >= 4 - pos):
+                if(x - double > 1):
+                    print("Straight of %d cards" %(x+1 - double))
+                    pts += (x+1 - double) * (double + 1)
+                    pos = 100
+                x = -1
+        pos += 1
+
+    
+
+    #Fifthteens (doesn't work yet)
+##    for w in hand:
+##        for h in hand:
+##            if(cardValue(w) + cardValue(h) == 15):
+##                pts += 2
+##                print("15 with %s len 2" %w) 
+##    for a in hand:
+##        for b in hand:
+##            for c in hand:
+##                if(cardValue(a) + cardValue(b) + cardValue(c) == 15 and not (a == b or a == c or b == c)):
+##                    pts += 2
+##                    print("15 with %s %s len 3" %(a,b))
+##    for a in hand:
+##        for b in hand:
+##            for c in hand:
+##                for d in hand:
+##                    if(cardValue(a) + cardValue(b) + cardValue(c) == 15 and not (a == b or a == c or a == d or b == c or b == d or c == d)):
+##                        pts += 2
+##                        print("15 with %s %s len 4" %(a,b))
+
+    #Flush
+    suit = hand[0][0]
+    flush = True
+    for s in hand:
+        if(suit != s[0]):
+            flush = False
+
+    if flush:
+        pts += 5
+
+    elif(hand[0][0] == hand[1][0] == hand[2][0] == hand[3][0]):
+        pts += 4
+
+    print("Pts: ",pts)
+    return(pts)          
+
+##turned_card = "H5"
+##hand = ["D3","D4","D5","D6"]
+##countHand(hand)
 
 games = 1
 game = 0
@@ -143,13 +251,12 @@ while (game < games) :
 
         crib1 = P1.deckProcess(plr1_crib,player1_hand,pts1,pts2)
         crib2 = P2.deckProcess(not plr1_crib,player2_hand,pts2,pts1)
-
-        print(crib1)
         
         #TODO: Check for valid crib return
         
         #Processes crib
         crib = crib1 + crib2
+        print("CRIB: ", crib)
         del player1_hand[player1_hand.index(crib1[0])]
         del player1_hand[player1_hand.index(crib1[1])]
         del player2_hand[player2_hand.index(crib2[0])]
@@ -168,7 +275,9 @@ while (game < games) :
         #Actual card playing phase
         played_cards = []
         played_cards_tot = 0
-        while(len(played_cards) < 8):
+        player1_counthand = copy.deepcopy(player1_hand)
+        player2_counthand = copy.deepcopy(player2_hand)
+        while((len(player1_hand) > 0 and len(player2_hand) > 0) and ((pts1 < 121) and (pts2<121))):
             card1 = "NA"
             card2 = "NA"
             if(plr1_crib):
@@ -176,50 +285,91 @@ while (game < games) :
                     card2 = P2.playCard(player2_hand,played_cards,pts2,pts1)
                     if(card2 != "GO"):
                         played_cards.append(card2)
-                        del player2_hand[card2]
-                        pts2 += checkPTS(cards_played)
+                        played_cards_tot += cardValue(card2)
+                        del player2_hand[player2_hand.index(card2)]
+                        pts2 += checkPTS(played_cards)
                     if(card2 == "GO" and card1 == "GO"):  #This allows pts if player 1 called go last round
                         card2 == "NA"
                     card1 = P1.playCard(player1_hand,played_cards,pts1,pts2)
                     if(card1 != "GO"):
                         played_cards.append(card1)
-                        del player1_hand[card1]
-                        pts1 += checkPTS(cards_played)
+                        played_cards_tot += cardValue(card1)
+                        del player1_hand[player1_hand.index(card1)]
+                        pts1 += checkPTS(played_cards)
+                    print(played_cards)
+                    print(played_cards_tot)
                 if(played_cards_tot == 31):
                     if(card1 == "GO"):
-                       pts2 += 2;
+                       pts2 += 2
+                       played_cards = []
+                       played_cards_tot = 0
                     else:
-                       pts1 += 2;
+                       pts1 += 2
+                       played_cards = []
+                       played_cards_tot = 0
                 else:
                     if(card2 == "GO"):
-                        pts1 += 1;
+                        pts1 += 1
+                        played_cards = []
+                        played_cards_tot = 0
                     else:
-                        pts2 += 1;
+                        pts2 += 1
+                        played_cards = []
+                        played_cards_tot = 0
             else:
                 while(played_cards_tot < 31 and (card1 != "GO" and card2 != "GO")):
                     card1 = P1.playCard(player1_hand,played_cards,pts1,pts2)
                     if(card1 != "GO"):
                         played_cards.append(card1)
-                        del player1_hand[card1]
-                        pts2 += checkPTS(cards_played)
+                        played_cards_tot += cardValue(card1)
+                        del player1_hand[player1_hand.index(card1)]
+                        pts2 += checkPTS(played_cards)
                     if(card2 == "GO" and card1 == "GO"):  #This allows pts if player 2 called go last round
                        card1 == "NA"
                     card2 = P2.playCard(player2_hand,played_cards,pts2,pts1)
                     if(card2 != "GO"):
                         played_cards.append(card2)
-                        del player2_hand[card2]
-                        pts2 += checkPTS(cards_played)
+                        played_cards_tot += cardValue(card2)
+                        del player2_hand[player2_hand.index(card2)]
+                        pts2 += checkPTS(played_cards)
+                    print(played_cards)
+                    print(played_cards_tot)
                 if(played_cards_tot == 31):
                    if(card1 == "GO"):
-                       pts2 += 2;
+                       pts2 += 2
+                       played_cards = []
+                       played_cards_tot = 0
                    else:
-                       pts1 += 2;
+                       pts1 += 2
+                       played_cards = []
+                       played_cards_tot = 0
                 else:
                    if(card1 == "GO"):
-                       pts2 += 1;
+                       pts2 += 1
+                       played_cards = []
+                       played_cards_tot = 0
                    else:
-                       pts1 += 1;
+                       pts1 += 1
+                       played_cards = []
+                       played_cards_tot = 0
             
-        
-        pts1 = 121 #Just here to end loop for testing purposes
+            print("Pl: %d" %pts1)
+            print("P2: %d" %pts2)
+        if((pts1 < 121) and (pts2<121) and not plr1_crib):    
+            pts1 += countHand(player1_counthand)
+        elif((pts1 < 121) and (pts2<121)):
+            pts2 += countHand(player2_counthand)
+        if((pts1 < 121) and (pts2<121) and plr1_crib):    
+            pts1 += countHand(player1_counthand)
+            pts1 += countHand(crib)
+        elif((pts1 < 121) and (pts2<121)):
+            pts2 += countHand(player2_counthand)
+            pts2 += countHand(crib)
+        print("Pl: %d" %pts1)
+        print("P2: %d" %pts2)
+        #Checks pts in hands
+##        if(plr1_crib):
+            
+            
+        #pts1 = 121 #Just here to end loop for testing purposes
     game += 1
