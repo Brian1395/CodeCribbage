@@ -28,8 +28,8 @@ All cards are sent in the format:
         S = Spades
         C = Clubs
     str[1:len(str)] = int that says value:
-        0 = KING
         1 = ACE
         2-10 = Card according to value
         11 = JACK
         12 = QUEEN
+        13 = KING
